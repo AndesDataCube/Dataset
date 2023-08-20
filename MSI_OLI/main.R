@@ -59,7 +59,7 @@ metadata <- st_read("tiles/points.geojson")
 
 # Create metadata table, difference 30 minutes ----------------------------
 container <- list()
-for (index in 1:1500) { 
+for (index in 1:nrow(metadata)) { 
   
   # Print the index value
   print(index)
@@ -83,15 +83,8 @@ for (index in 1:1500) {
   container[[index]] <- img_metadata
 }
 
-vc <- c()
-for (i in 1:1500) {
-  if(class(container[[i]]) == "try-error") {
-    vc <- c(vc, i)
-  } 
-}
-
 id_metadata <- do.call(rbind, container)
-id_metadata <- id_metadata[!is.na(id_metadata$mss_id),]
+id_metadata <- id_metadata[!is.na(id_metadata$msi_id),]
 # write.csv("exports/metadata.csv")
 
 

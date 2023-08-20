@@ -41,7 +41,7 @@ ee_Initialize()
 
 
 # Load initial dataset ----------------------------------------------------
-metadata <- read_sf("data/points.geojson")
+metadata <- read_sf("tiles/points.geojson")
 
 
 
@@ -85,13 +85,11 @@ for (index in 1:nrow(metadata)) {
         max_ob = 30
     )
     container[[index]] <- img_metadata
-}
+}s
 
 id_metadata <- do.call(rbind, container)
 id_metadata <- id_metadata[!is.na(id_metadata$mss_id),]
 write.csv(id_metadata,"exports/metadata.csv")
-
-
 
 # Display -----------------------------------------------------------------
 df <- read.csv("exports/metadata.csv") # previo filtro
