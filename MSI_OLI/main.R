@@ -43,7 +43,7 @@ ee_Initialize()
 list_of_snippets1 <- c(
   "COPERNICUS/S2_HARMONIZED"
   )
-list_of_snippets1 <- c(
+list_of_snippets2 <- c(
   "LANDSAT/LC08/C02/T1_TOA",
   "LANDSAT/LC08/C02/T2_TOA",
   "LANDSAT/LC09/C02/T1_TOA",
@@ -53,13 +53,13 @@ list_of_snippets1 <- c(
 
 
 # Load initial dataset ----------------------------------------------------
-metadata <- read_sf("Data/points.csv")
+metadata <- st_read("tiles/points.geojson")
 
 
 
 # Create metadata table, difference 30 minutes ----------------------------
 container <- list()
-for (index in 1:nrow(metadata)) { 
+for (index in 1:1500) { 
   
   # Print the index value
   print(index)
@@ -76,10 +76,18 @@ for (index in 1:nrow(metadata)) {
     units = "mins",
     scale = 10, 
     side = 11520,
-    timediff = 30,
-    max_ob = 35
+    p_cloud = 0.1, 
+    timediff = 60,
+    max_ob = 3
   )
   container[[index]] <- img_metadata
+}
+
+vc <- c()
+for (i in 1:1500) {
+  if(class(container[[i]]) == "try-error") {
+    vc <- c(vc, i)
+  } 
 }
 
 id_metadata <- do.call(rbind, container)

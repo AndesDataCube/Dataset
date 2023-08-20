@@ -299,26 +299,7 @@ tile_study <- function(point, proj, scale, side) {
 
 
 
-#' Generate a quality mask for cloud-free pixels.
-#'
-#' This function generates a quality mask for cloud-free pixels based on the 'QA_PIXEL' band in the image.
-#'
-#' @param image An Earth Engine image object.
-#'   This should be a valid image object with the 'QA_PIXEL' band to generate the quality mask.
-#'
-#' @return An Earth Engine image object representing the quality mask for cloud-free pixels.
-#'
-#' @export
-quality_mask <- function(image) { 
-  # Select the QA_PIXEL band and perform bitwise AND operation with binary value '11000' (decimal 24)
-  # This operation will flag cloudy pixels as 0 and cloud-free pixels as non-zero values.
-  mask <- image$select('QA_PIXEL')$
-    bitwiseAnd(strtoi('11000', base = 2))$
-    eq(0)
-  
-  # Return the mask
-  mask
-}
+ 
 
 
 

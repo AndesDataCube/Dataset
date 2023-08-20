@@ -243,6 +243,7 @@ cloud_free_count <- function(image, roi, scale) {
 #' @return A numeric value representing the cloud percentage.
 #'
 #' @export
+
 cloud_per_cal <- function(pixels, scale, side) {
   ee$Number(1)$
     add(pixels$
@@ -271,9 +272,9 @@ cloud_per_cal <- function(pixels, scale, side) {
 #' @export
 cloud_tile <- function(point, scale, side){
   img_cloud_tile <- function(image) {
-    projection <- image_proj(image) #
+    projection <- image_proj(image)
     ee_roi <- tile_study(point, projection, side)
-    cloud_mask <- quality_mask(image) #
+    cloud_mask <- quality_mask(image)
     count <- cloud_free_count(cloud_mask, ee_roi, scale)
     prop_cloud <- cloud_per_cal(count, scale, side)
     image$set(list("cloud" = prop_cloud))
@@ -402,7 +403,7 @@ time_between <- function(sensor1, sensor2, units) {
 #' )
 #'
 #' @export
-get_metadata <- function(point, snip1, snip2, sensors, units, scale, side, timediff, max_ob) {
+get_metadata <- function(point, snip1, snip2, sensors, units, scale, side, p_cloud, timediff, max_ob) {
   
   # Convert point geometries to Earth Engine format
   ee_point <- sf_as_ee(point$geometry)
@@ -419,7 +420,7 @@ get_metadata <- function(point, snip1, snip2, sensors, units, scale, side, timed
   CloudImgs <- imgsoli$map(cloud_tile(ee_point, scale, side))
   
   # Filter images in 'CloudImgs' based on cloud metadata
-  CloudImgsFilter <- CloudImgs$filterMetadata("cloud", "less_than", 15)
+  CloudImgsFilter <- CloudImgs$filterMetadata("cloud", "less_than", p_cloud)
   
   # Combine the 'CloudImgsFilter' and 'imgsmsi' image collections
   all_together_db <- id_dates_ic(list(CloudImgsFilter, imgsmsi))
@@ -476,17 +477,13 @@ get_metadata <- function(point, snip1, snip2, sensors, units, scale, side, timed
       epsg = point$CRS
   )
   
-  
   # Filter by maximum number of IDs established per point
   if (max_ob) {
+    df <- df[order(df$dif_time), ]
     n <- min(max_ob, nrow(df)) 
-    random_indices <- sample(1:nrow(df), n, replace = FALSE)
-    df <- df[random_indices, ]
+    df <- df[1:n, ]
   }
   
-  # Sort 'df' based on the 'dif_time' column
-  df <- df[order(df$dif_time), ]
-
   # Create empty vectors to store Earth Engine images
   Imgo <- c()
   Imgm <- c()
@@ -667,14 +664,14 @@ DisplayTransform <- function(row, mode, distance, max = 0.3) {
 #' @param timediff The time difference to consider when fetching the metadata.
 #' @param counter An optional integer specifying the retry counter. Defaults to 1.
 #' @return The metadata retrieved using the `get_metadata` function, or an error message if retries fail.
-get_metadata_try <- function(point, snip1, snip2, sensors, units, scale, side, timediff = 30, max_ob = F, counter = 1) {
+get_metadata_try <- function(point, snip1, snip2, sensors, units, scale, side, p_cloud = 1, timediff = 30, max_ob = F, counter = 1) {
   results <- try(
-    get_metadata(point = point, snip1 = snip1, snip2 = snip2, sensors = sensors, units = units, scale = scale, side = side, timediff = timediff, max_ob = max_ob)
+    get_metadata(point = point, snip1 = snip1, snip2 = snip2, sensors = sensors, units = units, scale = scale, side = side, p_cloud = p_cloud, timediff = timediff, max_ob = max_ob)
   )
   if (inherits(class(results), "try-error")) {
     counter <- counter + 1
     if (counter == 5) stop("Probably internet connection lost")
-    get_metadata_try(point, snip1, snip2, sensors, units, scale, side, timediff = 30, max_ob = F, counter = 1)
+    get_metadata_try(point, snip1, snip2, sensors, units, scale, side, p_cloud = 1, timediff = 30, max_ob = F, counter = 1)
   }
   
   results
